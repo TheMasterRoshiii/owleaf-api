@@ -5,57 +5,61 @@ import me.master.owleaf.util.RotationUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
-@Mixin(Entity.class)
-public abstract class EntityMixin {
+@Mixin(LivingEntity.class)
+public abstract class EntityMixin extends Entity {
 
-    @Shadow public Level level;
-    @Shadow public abstract Vec3 position();
-    @Shadow public abstract Vec3 getViewVector(float partialTicks);
+    public EntityMixin(EntityType<?> p_19870_, Level p_19871_) {
+        super(p_19870_, p_19871_);
+    }
 
-    @ModifyVariable(method = "baseTick", at = @At("STORE"), ordinal = 0)
-    public Vec3 modifyBaseTick(Vec3 modify) {
-        Entity entity = (Entity)(Object)this;
+    @Redirect(
+            method = "travel(Lnet/minecraft/world/phys/Vec3;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/phys/Vec3;add(DDD)Lnet/minecraft/world/phys/Vec3;"
+            )
+    )
+    private Vec3 redirect_travel_applyGravity(Vec3 velocity, double x, double y, double z) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
+        if (gravityDirection == Direction.DOWN) {
+            return velocity.add(x, y, z);
+        }
+
+        Vec3 gravity = new Vec3(0.0, y, 0.0);
+        Vec3 rotatedGravity = RotationUtil.vecPlayerToWorld(gravity, gravityDirection);
+        return velocity.add(rotatedGravity);
+    }
+
+    @ModifyVariable(method = "knockback(DDD)V", at = @At("HEAD"), ordinal = 1, argsOnly = true)
+    private double modifyKnockbackX(double x) {
+        LivingEntity entity = (LivingEntity)(Object)this;
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
 
         if (gravityDirection == Direction.DOWN) {
-            return modify;
+            return x;
         }
 
-        modify = new Vec3(modify.x, modify.y - 0.04, modify.z);
-        modify = RotationUtil.vecWorldToPlayer(modify, gravityDirection);
-        modify = new Vec3(modify.x, modify.y + 0.04, modify.z);
-        modify = RotationUtil.vecPlayerToWorld(modify, gravityDirection);
-        return modify;
+        return RotationUtil.vecWorldToPlayer(x, 0.0, 0.0, gravityDirection).x;
     }
 
-    @ModifyVariable(method = "move", at = @At("STORE"), ordinal = 0)
-    public Vec3 modifyMove(Vec3 modify) {
-        Entity entity = (Entity)(Object)this;
+    @ModifyVariable(method = "knockback(DDD)V", at = @At("HEAD"), ordinal = 2, argsOnly = true)
+    private double modifyKnockbackZ(double z) {
+        LivingEntity entity = (LivingEntity)(Object)this;
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
 
-        if (gravityDirection != Direction.DOWN) {
-            Vec3 rotate = new Vec3(0.0, 0.98, 0.0);
-            rotate = RotationUtil.vecPlayerToWorld(rotate, gravityDirection);
-            modify = new Vec3(modify.x - rotate.x, modify.y - rotate.y * 0.98, modify.z - rotate.z);
+        if (gravityDirection == Direction.DOWN) {
+            return z;
         }
 
-        return modify;
-    }
-
-    @Redirect(method = "checkFallDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getY()D", ordinal = 0))
-    private double redirectCheckFallDamageGetY(Entity entity) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
-        return gravityDirection == Direction.DOWN ? entity.getY() :
-                RotationUtil.vecWorldToPlayer(entity.position(), gravityDirection).y;
+        return RotationUtil.vecWorldToPlayer(0.0, 0.0, z, gravityDirection).z;
     }
 }

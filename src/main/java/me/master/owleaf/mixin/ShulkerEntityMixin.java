@@ -9,18 +9,25 @@ import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Shulker.class)
 public abstract class ShulkerEntityMixin {
 
-    @Redirect(method = "push", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V", ordinal = 0))
-    private void redirectPushMove0(Entity entity, MoverType movementType, Vec3 vec3d) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
+    @Inject(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("HEAD"), cancellable = true)
+    private void owleaf_onPush(Entity pushedEntity, CallbackInfo ci) {
+        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(pushedEntity);
         if (gravityDirection == Direction.DOWN) {
-            entity.move(movementType, vec3d);
-        } else {
-            entity.move(movementType, RotationUtil.vecWorldToPlayer(vec3d, gravityDirection));
+            return;
         }
+
+        ci.cancel();
+
+        Shulker self = (Shulker)(Object)this;
+        Vec3 movement = pushedEntity.position().subtract(self.position()).normalize();
+        Vec3 rotatedMovement = RotationUtil.vecWorldToPlayer(movement, gravityDirection);
+
+        pushedEntity.move(MoverType.SHULKER_BOX, rotatedMovement);
     }
 }

@@ -22,18 +22,18 @@ class PistonBlockEntityMixin {
         try {
             PistonMovingBlockEntity piston = (PistonMovingBlockEntity)(Object)ci;
 
-            // Use reflection to find and call the correct method for moving entities
+
             Method[] methods = PistonMovingBlockEntity.class.getDeclaredMethods();
             for (Method method : methods) {
-                // Look for methods that might handle entity movement
+
                 if (method.getName().contains("move") && method.getParameterCount() >= 2) {
                     method.setAccessible(true);
-                    // Apply gravity transformation logic here
+
                     break;
                 }
             }
 
-            // Alternative: Direct entity manipulation in tick
+
             if (piston.getLevel() != null) {
                 List<Entity> entities = piston.getLevel().getEntitiesOfClass(Entity.class,
                         piston.getBlockState().getShape(piston.getLevel(), piston.getBlockPos()).bounds().move(piston.getBlockPos()));
@@ -48,7 +48,7 @@ class PistonBlockEntityMixin {
                 }
             }
         } catch (Exception e) {
-            // Safe fallback - ignore any reflection errors
+
         }
     }
 }

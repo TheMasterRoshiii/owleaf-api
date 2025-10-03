@@ -14,18 +14,21 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LookControl.class)
-public class LookControlMixin {
+public abstract class LookControlMixin {
 
     @Shadow @Final protected Mob mob;
+    @Shadow protected double wantedX;
+    @Shadow protected double wantedY;
+    @Shadow protected double wantedZ;
 
     @Inject(method = "getWantedX", at = @At("HEAD"), cancellable = true)
     private void onGetWantedX(CallbackInfoReturnable<Double> cir) {
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(mob);
         if (gravityDirection != Direction.DOWN) {
-            Vec3 target = new Vec3(mob.getLookControl().getWantedX(), 0.0, mob.getLookControl().getWantedY());
+            Vec3 target = new Vec3(this.wantedX, this.wantedY, this.wantedZ);
             Vec3 relative = RotationUtil.vecWorldToPlayer(
                     target.x - mob.getX(),
-                    target.y - mob.getY(),
+                    target.y - mob.getEyeY(),
                     target.z - mob.getZ(),
                     gravityDirection
             );
@@ -38,10 +41,10 @@ public class LookControlMixin {
     private void onGetWantedY(CallbackInfoReturnable<Double> cir) {
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(mob);
         if (gravityDirection != Direction.DOWN) {
-            Vec3 target = new Vec3(mob.getLookControl().getWantedX(), 0.0, mob.getLookControl().getWantedY());
+            Vec3 target = new Vec3(this.wantedX, this.wantedY, this.wantedZ);
             Vec3 relative = RotationUtil.vecWorldToPlayer(
                     target.x - mob.getX(),
-                    target.y - mob.getY(),
+                    target.y - mob.getEyeY(),
                     target.z - mob.getZ(),
                     gravityDirection
             );

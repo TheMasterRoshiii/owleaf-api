@@ -5,7 +5,6 @@ import me.master.owleaf.util.RotationUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -30,10 +29,10 @@ public abstract class PersistentProjectileEntityMixin extends Entity {
     public Vec3 modifyTick(Vec3 modify) {
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(this);
         if (gravityDirection != Direction.DOWN) {
-            modify = new Vec3(modify.x, modify.y - 0.05, modify.z);
-            modify = RotationUtil.vecWorldToPlayer(modify, gravityDirection);
-            modify = new Vec3(modify.x, modify.y + 0.05, modify.z);
-            modify = RotationUtil.vecPlayerToWorld(modify, gravityDirection);
+            Vec3 tempVec = new Vec3(modify.x, modify.y - 0.05, modify.z);
+            tempVec = RotationUtil.vecWorldToPlayer(tempVec, gravityDirection);
+            tempVec = tempVec.add(0, 0.05, 0);
+            return RotationUtil.vecPlayerToWorld(tempVec, gravityDirection);
         }
         return modify;
     }

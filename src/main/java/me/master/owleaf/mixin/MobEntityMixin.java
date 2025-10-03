@@ -12,18 +12,20 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Mob.class)
 public abstract class MobEntityMixin {
 
-    @Redirect(method = "doHurtTarget", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;getYRot()F", ordinal = 0))
-    private float redirectDoHurtTargetGetYaw0(Mob attacker, Entity target) {
+    private float getRotatedYaw(Mob attacker, Entity target) {
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(target);
         return gravityDirection == Direction.DOWN ? attacker.getYRot() :
                 RotationUtil.rotWorldToPlayer(attacker.getYRot(), attacker.getXRot(), gravityDirection).x;
     }
 
+    @Redirect(method = "doHurtTarget", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;getYRot()F", ordinal = 0))
+    private float redirectDoHurtTargetGetYaw0(Mob attacker, Entity target) {
+        return getRotatedYaw(attacker, target);
+    }
+
     @Redirect(method = "doHurtTarget", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;getYRot()F", ordinal = 1))
     private float redirectDoHurtTargetGetYaw1(Mob attacker, Entity target) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(target);
-        return gravityDirection == Direction.DOWN ? attacker.getYRot() :
-                RotationUtil.rotWorldToPlayer(attacker.getYRot(), attacker.getXRot(), gravityDirection).x;
+        return getRotatedYaw(attacker, target);
     }
 
     @Redirect(method = "lookAt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getEyeY()D", ordinal = 0))

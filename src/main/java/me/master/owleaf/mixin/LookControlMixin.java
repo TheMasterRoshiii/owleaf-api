@@ -1,37 +1,52 @@
 package me.master.owleaf.mixin;
 
 import me.master.owleaf.api.OwleafGravityAPI;
+import me.master.owleaf.util.RotationUtil;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.LookControl;
+import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LookControl.class)
-class LookControlMixin {
+public class LookControlMixin {
 
-    @Inject(method = "getWantedY", at = @At(value = "HEAD"), cancellable = true)
-    private void onGetWantedY(Entity entity, CallbackInfoReturnable<Double> cir) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
+    @Shadow @Final protected Mob mob;
+
+    @Inject(method = "getWantedX", at = @At("HEAD"), cancellable = true)
+    private void onGetWantedX(CallbackInfoReturnable<Double> cir) {
+        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(mob);
         if (gravityDirection != Direction.DOWN) {
-            cir.setReturnValue(entity.getEyePosition().y);
+            Vec3 target = new Vec3(mob.getLookControl().getWantedX(), 0.0, mob.getLookControl().getWantedY());
+            Vec3 relative = RotationUtil.vecWorldToPlayer(
+                    target.x - mob.getX(),
+                    target.y - mob.getY(),
+                    target.z - mob.getZ(),
+                    gravityDirection
+            );
+            double yaw = Math.atan2(relative.z, relative.x) * (180.0 / Math.PI) - 90.0;
+            cir.setReturnValue(yaw);
         }
     }
 
-    @Redirect(method = "setLookAt(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getX()D", ordinal = 0))
-    private double redirectSetLookAtGetX0(Entity entity) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
-        return gravityDirection == Direction.DOWN ? entity.getX() :
-                entity.getEyePosition().x;
-    }
-
-    @Redirect(method = "setLookAt(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getZ()D", ordinal = 0))
-    private double redirectSetLookAtGetZ0(Entity entity) {
-        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);
-        return gravityDirection == Direction.DOWN ? entity.getZ() :
-                entity.getEyePosition().z;
+    @Inject(method = "getWantedY", at = @At("HEAD"), cancellable = true)
+    private void onGetWantedY(CallbackInfoReturnable<Double> cir) {
+        Direction gravityDirection = OwleafGravityAPI.getGravityDirection(mob);
+        if (gravityDirection != Direction.DOWN) {
+            Vec3 target = new Vec3(mob.getLookControl().getWantedX(), 0.0, mob.getLookControl().getWantedY());
+            Vec3 relative = RotationUtil.vecWorldToPlayer(
+                    target.x - mob.getX(),
+                    target.y - mob.getY(),
+                    target.z - mob.getZ(),
+                    gravityDirection
+            );
+            double pitch = -Math.atan2(relative.y, Math.sqrt(relative.x * relative.x + relative.z * relative.z)) * (180.0 / Math.PI);
+            cir.setReturnValue(pitch);
+        }
     }
 }

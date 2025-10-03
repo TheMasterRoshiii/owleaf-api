@@ -84,7 +84,10 @@ public class GravityDirectionComponent implements GravityComponent {
                 if (rotationParameters.rotateVelocity()) {
                     Vector3f worldSpaceVec = realWorldVelocity.toVector3f();
                     worldSpaceVec.rotate(RotationUtil.getRotationBetween(this.prevGravityDirection, this.gravityDirection));
-                    this.entity.setDeltaMovement(RotationUtil.vecWorldToPlayer(new Vec3(worldSpaceVec), this.gravityDirection));
+                    this.entity.setDeltaMovement(RotationUtil.vecWorldToPlayer(
+                            new Vec3(worldSpaceVec.x(), worldSpaceVec.y(), worldSpaceVec.z()),
+                            this.gravityDirection
+                    ));
                 } else {
                     this.entity.setDeltaMovement(RotationUtil.vecWorldToPlayer(realWorldVelocity, this.gravityDirection));
                 }
@@ -170,7 +173,8 @@ public class GravityDirectionComponent implements GravityComponent {
             }
         }
 
-        return new Vec3(movingDirection.getNormal()).scale(offset);
+        // Cambié esta línea para convertir Vec3i a Vec3 manualmente
+        return new Vec3(movingDirection.getNormal().getX(), movingDirection.getNormal().getY(), movingDirection.getNormal().getZ()).scale(offset);
     }
 
     @Override

@@ -1,7 +1,8 @@
 package me.master.owleaf.util;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -14,6 +15,13 @@ public abstract class RotationUtil {
     private static final Direction[][] DIR_PLAYER_TO_WORLD = new Direction[6][];
     private static final Quaternionf[] WORLD_ROTATION_QUATERNIONS = new Quaternionf[6];
     private static final Quaternionf[] ENTITY_ROTATION_QUATERNIONS = new Quaternionf[6];
+
+
+    public static void applyGravityRotation(PoseStack poseStack, Direction gravityDirection) {
+
+        poseStack.mulPose(new Quaternionf().rotationTo(Direction.UP.step(), gravityDirection.step()));
+    }
+
 
     public static Direction dirWorldToPlayer(Direction direction, Direction gravityDirection) {
         return DIR_WORLD_TO_PLAYER[gravityDirection.get3DDataValue()][direction.get3DDataValue()];
@@ -178,8 +186,8 @@ public abstract class RotationUtil {
     }
 
     public static Quaternionf getRotationBetween(Direction d1, Direction d2) {
-        Vec3 start = Vec3.atLowerCornerOf(d1.getNormal());
-        Vec3 end = Vec3.atLowerCornerOf(d2.getNormal());
+        Vec3 start = new Vec3(d1.getNormal().getX(), d1.getNormal().getY(), d1.getNormal().getZ());
+        Vec3 end = new Vec3(d2.getNormal().getX(), d2.getNormal().getY(), d2.getNormal().getZ());
 
         if (d1.getOpposite() == d2) {
             return new Quaternionf().fromAxisAngleDeg(new Vector3f(0.0F, 0.0F, -1.0F), 180.0F);
@@ -196,18 +204,17 @@ public abstract class RotationUtil {
         for (Direction gravityDirection : Direction.values()) {
             DIR_WORLD_TO_PLAYER[gravityDirection.get3DDataValue()] = new Direction[6];
             for (Direction direction : Direction.values()) {
-                Vec3 directionVector = Vec3.atLowerCornerOf(direction.getNormal());
+                Vec3 directionVector = new Vec3(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
                 directionVector = vecWorldToPlayer(directionVector, gravityDirection);
                 DIR_WORLD_TO_PLAYER[gravityDirection.get3DDataValue()][direction.get3DDataValue()] =
                         Direction.getNearest(directionVector.x, directionVector.y, directionVector.z);
             }
         }
 
-        DIR_PLAYER_TO_WORLD = new Direction[6][];
         for (Direction gravityDirection : Direction.values()) {
             DIR_PLAYER_TO_WORLD[gravityDirection.get3DDataValue()] = new Direction[6];
             for (Direction direction : Direction.values()) {
-                Vec3 directionVector = Vec3.atLowerCornerOf(direction.getNormal());
+                Vec3 directionVector = new Vec3(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
                 directionVector = vecPlayerToWorld(directionVector, gravityDirection);
                 DIR_PLAYER_TO_WORLD[gravityDirection.get3DDataValue()][direction.get3DDataValue()] =
                         Direction.getNearest(directionVector.x, directionVector.y, directionVector.z);

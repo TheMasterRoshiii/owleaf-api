@@ -34,7 +34,7 @@ public abstract class LivingEntityMixin extends Entity {
                 RotationUtil.vecWorldToPlayer(livingEntity.position(), gravityDirection).y;
     }
 
-    @ModifyVariable(method = "travel", at = @At("STORE"), ordinal = 0)
+    @ModifyVariable(method = "travel", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     public Vec3 modifyTravel(Vec3 modify) {
         LivingEntity entity = (LivingEntity)(Object)this;
         Direction gravityDirection = OwleafGravityAPI.getGravityDirection(entity);

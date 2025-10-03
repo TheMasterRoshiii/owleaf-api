@@ -2,16 +2,47 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.master.owleaf.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "owleafapi.refmap.json",
   "mixins": [
+    "DirectionMixin",
+    "DrownedEntityMixin",
+    "EndermanEntityChasePlayerGoalMixin",
+    "EntityMixin",
+    "IllusionerEntityMixin",
+    "ItemUsageContextMixin",
+    "LivingEntityMixin",
+    "LookAtEntityGoalMixin",
+    "LookControlMixin",
+    "MobEntityMixin",
+    "PersistentProjectileEntityMixin",
+    "PiglinEntityMixin",
+    "PillagerEntityMixin",
+    "PistonBlockEntityMixin",
+    "PlayerEntityMixin",
+    "PointedDripstoneBlockMixin",
+    "ProjectileEntityMixin",
+    "RamImpactTaskMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "ServerPlayerEntityMixin",
+    "ShulkerEntityMixin",
+    "ThrownEntityMixin",
+    "WitchEntityMixin",
+    "WolfEntityMixin"
   ],
   "client": [
+    "client.BiomeEffectSoundPlayerMixin",
+    "client.CameraMixin",
+    "client.ClientPlayNetworkHandlerMixin",
+    "client.EntityRenderDispatcherMixin",
+    "client.EntityRenderMixin",
+    "client.FishingBobberEntityRendererMixin",
+    "client.GameRendererMixin",
+    "client.InGameOverlayRendererMixin",
+    "client.ItemPickupParticleMixin",
+    "client.PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
   }
 }
